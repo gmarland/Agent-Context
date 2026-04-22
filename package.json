@@ -1,0 +1,105 @@
+{
+  "name": "symlink-extension",
+  "displayName": "Symlink Folders",
+  "description": "Symlink external folders into your workspace for use as AI agent examples",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:symlinkFolders"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "symlinkFolders.addSymlink",
+        "title": "Add Symlink Folder",
+        "icon": "$(add)"
+      },
+      {
+        "command": "symlinkFolders.removeSymlink",
+        "title": "Remove Symlink",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "symlinkFolders.refresh",
+        "title": "Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "symlinkFolders.openTargetFolder",
+        "title": "Open Target Folder",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "symlinkFolders.revealInFinder",
+        "title": "Reveal Original in Finder",
+        "icon": "$(file-symlink-directory)"
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "symlinkFolders",
+          "name": "Symlink Folders"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "symlinkFolders.addSymlink",
+          "when": "view == symlinkFolders",
+          "group": "navigation"
+        },
+        {
+          "command": "symlinkFolders.refresh",
+          "when": "view == symlinkFolders",
+          "group": "navigation"
+        },
+        {
+          "command": "symlinkFolders.openTargetFolder",
+          "when": "view == symlinkFolders",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "symlinkFolders.removeSymlink",
+          "when": "view == symlinkFolders && viewItem == symlinkItem",
+          "group": "inline"
+        },
+        {
+          "command": "symlinkFolders.revealInFinder",
+          "when": "view == symlinkFolders && viewItem == symlinkItem",
+          "group": "inline"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Symlink Folders",
+      "properties": {
+        "symlinkFolders.targetFolder": {
+          "type": "string",
+          "default": ".examples",
+          "description": "The folder within the workspace where symlinks will be created"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.0"
+  }
+}
