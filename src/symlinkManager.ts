@@ -12,29 +12,35 @@ interface SidecarData {
   [name: string]: { realPath: string; description?: string };
 }
 
-const SIDECAR_FILE = '.symlinks.json';
+const SIDECAR_FILE = ".symlinks.json";
 
 async function readSidecar(targetDir: string): Promise<SidecarData> {
   try {
-    const raw = await fs.promises.readFile(path.join(targetDir, SIDECAR_FILE), 'utf8');
+    const raw = await fs.promises.readFile(
+      path.join(targetDir, SIDECAR_FILE),
+      "utf8",
+    );
     return JSON.parse(raw) as SidecarData;
   } catch {
     return {};
   }
 }
 
-async function writeSidecar(targetDir: string, data: SidecarData): Promise<void> {
+async function writeSidecar(
+  targetDir: string,
+  data: SidecarData,
+): Promise<void> {
   await fs.promises.writeFile(
     path.join(targetDir, SIDECAR_FILE),
     JSON.stringify(data, null, 2),
-    'utf8'
+    "utf8",
   );
 }
 
 export async function setDescription(
   targetDir: string,
   name: string,
-  description: string
+  description: string,
 ): Promise<void> {
   const data = await readSidecar(targetDir);
   data[name] = { ...data[name], description };

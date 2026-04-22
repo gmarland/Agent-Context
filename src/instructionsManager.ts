@@ -1,9 +1,9 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import { SymlinkEntry } from './symlinkManager';
+import * as fs from "fs";
+import * as path from "path";
+import { SymlinkEntry } from "./symlinkManager";
 
-const BLOCK_START = '<!-- symlink-folders:start -->';
-const BLOCK_END = '<!-- symlink-folders:end -->';
+const BLOCK_START = "<!-- symlink-folders:start -->";
+const BLOCK_END = "<!-- symlink-folders:end -->";
 
 function generateBlock(symlinks: SymlinkEntry[], targetFolder: string): string {
   if (symlinks.length === 0) {
@@ -12,33 +12,35 @@ function generateBlock(symlinks: SymlinkEntry[], targetFolder: string): string {
 
   const lines = [
     BLOCK_START,
-    '## Example Folders',
-    '',
+    "## Example Folders",
+    "",
     `The following folders are symlinked into \`${targetFolder}/\` to provide reference implementations.`,
     `When writing code, refer to these examples for patterns and conventions used in this project.`,
-    '',
+    "",
   ];
 
   for (const s of symlinks) {
-    const desc = s.description ? ` — ${s.description}` : '';
+    const desc = s.description ? ` — ${s.description}` : "";
     lines.push(`- **${s.name}** (\`${targetFolder}/${s.name}\`)${desc}`);
   }
 
-  lines.push(BLOCK_END, '');
-  return lines.join('\n');
+  lines.push(BLOCK_END, "");
+  return lines.join("\n");
 }
 
 export async function updateInstructionsFile(
   instructionsFilePath: string,
   symlinks: SymlinkEntry[],
-  targetFolder: string
+  targetFolder: string,
 ): Promise<void> {
   // Ensure parent directory exists
-  await fs.promises.mkdir(path.dirname(instructionsFilePath), { recursive: true });
+  await fs.promises.mkdir(path.dirname(instructionsFilePath), {
+    recursive: true,
+  });
 
-  let existing = '';
+  let existing = "";
   try {
-    existing = await fs.promises.readFile(instructionsFilePath, 'utf8');
+    existing = await fs.promises.readFile(instructionsFilePath, "utf8");
   } catch {
     // File doesn't exist yet — start empty
   }
@@ -52,14 +54,15 @@ export async function updateInstructionsFile(
   if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
     // Replace existing block (keep content before and after)
     const before = existing.slice(0, startIdx);
-    const after = existing.slice(endIdx + BLOCK_END.length).replace(/^\n/, '');
-    updated = before + newBlock + (after.trimStart() ? '\n' + after.trimStart() : '');
+    const after = existing.slice(endIdx + BLOCK_END.length).replace(/^\n/, "");
+    updated =
+      before + newBlock + (after.trimStart() ? "\n" + after.trimStart() : "");
   } else if (existing.trim().length > 0) {
     // Append to existing content
-    updated = existing.trimEnd() + '\n\n' + newBlock;
+    updated = existing.trimEnd() + "\n\n" + newBlock;
   } else {
     updated = newBlock;
   }
 
-  await fs.promises.writeFile(instructionsFilePath, updated, 'utf8');
+  await fs.promises.writeFile(instructionsFilePath, updated, "utf8");
 }
