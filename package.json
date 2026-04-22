@@ -2,7 +2,7 @@
   "name": "symlink-extension",
   "displayName": "Symlink Folders",
   "description": "Symlink external folders into your workspace for use as AI agent examples",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.85.0"
   },
