@@ -31,6 +31,6 @@ export function shouldUpdateInstructions(): boolean {
 }
 
 export function getInstructionsFile(workspaceRoot: string): string {
-  const rel = getConfiguredValue("instructionsFile", "AGENTS.md");
+  const rel = getConfiguredValue("instructionsFile", "AgentFolders.AGENTS.md");
   return path.join(workspaceRoot, rel);
 }

@@ -25,15 +25,21 @@ test("adds managed block when target folder exists", async () => {
     const gitignorePath = path.join(tempDir, ".gitignore");
     const targetFolder = ".examples";
     const targetDirPath = path.join(tempDir, targetFolder);
+    const instructionsFilePath = path.join(tempDir, "AgentFolders.AGENTS.md");
 
     await fs.mkdir(targetDirPath, { recursive: true });
 
-    await updateGitignoreFile(gitignorePath, targetFolder, targetDirPath);
+    await updateGitignoreFile(
+      gitignorePath,
+      targetFolder,
+      targetDirPath,
+      instructionsFilePath,
+    );
 
     const content = await fs.readFile(gitignorePath, "utf8");
     assert.equal(
       content,
-      `${BLOCK_START}\n/.examples/\n${BLOCK_END}\n`,
+      `${BLOCK_START}\n/.examples/\n/AgentFolders.AGENTS.md\n${BLOCK_END}\n`,
       "Expected .gitignore to contain only the managed block",
     );
   });
@@ -44,60 +50,112 @@ test("appends managed block while preserving existing rules", async () => {
     const gitignorePath = path.join(tempDir, ".gitignore");
     const targetFolder = ".examples";
     const targetDirPath = path.join(tempDir, targetFolder);
+    const instructionsFilePath = path.join(tempDir, "AgentFolders.AGENTS.md");
 
     await fs.writeFile(gitignorePath, "node_modules/\nout/\n", "utf8");
     await fs.mkdir(targetDirPath, { recursive: true });
 
-    await updateGitignoreFile(gitignorePath, targetFolder, targetDirPath);
+    await updateGitignoreFile(
+      gitignorePath,
+      targetFolder,
+      targetDirPath,
+      instructionsFilePath,
+    );
 
     const content = await fs.readFile(gitignorePath, "utf8");
     assert.equal(
       content,
-      "node_modules/\nout/\n\n# agent-folders:start\n/.examples/\n# agent-folders:end\n",
+      "node_modules/\nout/\n\n# agent-folders:start\n/.examples/\n/AgentFolders.AGENTS.md\n# agent-folders:end\n",
       "Expected existing .gitignore rules to remain and managed block to append",
     );
   });
 });
 
-test("removes only managed block when target folder is absent", async () => {
+test("removes only the folder ignore entry when target folder is absent", async () => {
   await withTempDir(async (tempDir) => {
     const gitignorePath = path.join(tempDir, ".gitignore");
     const targetFolder = ".examples";
     const targetDirPath = path.join(tempDir, targetFolder);
+    const instructionsFilePath = path.join(tempDir, "AgentFolders.AGENTS.md");
 
     await fs.writeFile(
       gitignorePath,
-      "node_modules/\n\n# agent-folders:start\n/.examples/\n# agent-folders:end\n\nout/\n",
+      "node_modules/\n\n# agent-folders:start\n/.examples/\n/AgentFolders.AGENTS.md\n# agent-folders:end\n\nout/\n",
       "utf8",
     );
 
-    await updateGitignoreFile(gitignorePath, targetFolder, targetDirPath);
+    await updateGitignoreFile(
+      gitignorePath,
+      targetFolder,
+      targetDirPath,
+      instructionsFilePath,
+    );
 
     const content = await fs.readFile(gitignorePath, "utf8");
     assert.equal(
       content,
-      "node_modules/\n\nout/\n",
-      "Expected only managed block to be removed",
+      "node_modules/\n\n# agent-folders:start\n/AgentFolders.AGENTS.md\n# agent-folders:end\n\nout/\n",
+      "Expected only the folder entry in the managed block to be removed",
     );
   });
 });
 
-test("deletes .gitignore when it only contains managed block and folder disappears", async () => {
+test("preserves the instructions file ignore entry when only the folder disappears", async () => {
   await withTempDir(async (tempDir) => {
     const gitignorePath = path.join(tempDir, ".gitignore");
     const targetFolder = ".examples";
     const targetDirPath = path.join(tempDir, targetFolder);
+    const instructionsFilePath = path.join(tempDir, "AgentFolders.AGENTS.md");
 
     await fs.mkdir(targetDirPath, { recursive: true });
-    await updateGitignoreFile(gitignorePath, targetFolder, targetDirPath);
+    await updateGitignoreFile(
+      gitignorePath,
+      targetFolder,
+      targetDirPath,
+      instructionsFilePath,
+    );
 
     await fs.rm(targetDirPath, { recursive: true, force: true });
-    await updateGitignoreFile(gitignorePath, targetFolder, targetDirPath);
+    await updateGitignoreFile(
+      gitignorePath,
+      targetFolder,
+      targetDirPath,
+      instructionsFilePath,
+    );
 
-    await assert.rejects(
-      async () => fs.readFile(gitignorePath, "utf8"),
-      (error) => error && error.code === "ENOENT",
-      "Expected .gitignore to be removed when only managed content remained",
+    const content = await fs.readFile(gitignorePath, "utf8");
+    assert.equal(
+      content,
+      `${BLOCK_START}\n/AgentFolders.AGENTS.md\n${BLOCK_END}\n`,
+      "Expected .gitignore to keep ignoring the generated instructions file",
+    );
+  });
+});
+
+test("supports ignoring a nested generated instructions file", async () => {
+  await withTempDir(async (tempDir) => {
+    const gitignorePath = path.join(tempDir, ".gitignore");
+    const targetFolder = ".examples";
+    const targetDirPath = path.join(tempDir, targetFolder);
+    const instructionsFilePath = path.join(
+      tempDir,
+      ".agent",
+      "AgentFolders.AGENTS.md",
+    );
+
+    await fs.mkdir(targetDirPath, { recursive: true });
+    await updateGitignoreFile(
+      gitignorePath,
+      targetFolder,
+      targetDirPath,
+      instructionsFilePath,
+    );
+
+    const content = await fs.readFile(gitignorePath, "utf8");
+    assert.equal(
+      content,
+      `${BLOCK_START}\n/.examples/\n/.agent/AgentFolders.AGENTS.md\n${BLOCK_END}\n`,
+      "Expected nested generated instructions file to be ignored relative to the workspace root",
     );
   });
 });

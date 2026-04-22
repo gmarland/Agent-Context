@@ -2,7 +2,7 @@
   "name": "symlink-extension",
   "displayName": "Agent Folders",
   "description": "Attach external reference folders to your workspace for agent and developer context",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -120,8 +120,8 @@
         },
         "agentFolders.instructionsFile": {
           "type": "string",
-          "default": "AGENTS.md",
-          "description": "Relative path within the workspace to the shared instructions file to update"
+          "default": "AgentFolders.AGENTS.md",
+          "description": "Relative path within the workspace to the generated Agent Folders instructions file to update"
         }
       }
     }

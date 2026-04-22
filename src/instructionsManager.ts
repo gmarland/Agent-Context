@@ -73,6 +73,7 @@ export async function updateGitignoreFile(
   gitignoreFilePath: string,
   targetFolder: string,
   targetDirPath: string,
+  instructionsFilePath?: string,
 ): Promise<void> {
   let existing = "";
   try {
@@ -82,6 +83,13 @@ export async function updateGitignoreFile(
   }
 
   const normalizedTarget = targetFolder.replace(/^\/+|\/+$/g, "");
+  const normalizedInstructionsPath =
+    instructionsFilePath && path.dirname(gitignoreFilePath)
+      ? path
+          .relative(path.dirname(gitignoreFilePath), instructionsFilePath)
+          .replace(/\\/g, "/")
+          .replace(/^\/+/, "")
+      : "";
   let targetDirExists = false;
   try {
     const stat = await fs.promises.stat(targetDirPath);
@@ -90,10 +98,18 @@ export async function updateGitignoreFile(
     targetDirExists = false;
   }
 
-  const hasManagedFolder = normalizedTarget.length > 0 && targetDirExists;
-  const managedBlock = hasManagedFolder
-    ? `${GITIGNORE_BLOCK_START}\n/${normalizedTarget}/\n${GITIGNORE_BLOCK_END}\n`
-    : "";
+  const managedEntries: string[] = [];
+  if (normalizedTarget.length > 0 && targetDirExists) {
+    managedEntries.push(`/${normalizedTarget}/`);
+  }
+  if (normalizedInstructionsPath.length > 0) {
+    managedEntries.push(`/${normalizedInstructionsPath}`);
+  }
+
+  const managedBlock =
+    managedEntries.length > 0
+      ? `${GITIGNORE_BLOCK_START}\n${managedEntries.join("\n")}\n${GITIGNORE_BLOCK_END}\n`
+      : "";
 
   const startIdx = existing.indexOf(GITIGNORE_BLOCK_START);
   const endIdx = existing.indexOf(GITIGNORE_BLOCK_END);

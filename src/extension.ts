@@ -40,19 +40,22 @@ async function syncInstructions(workspaceRoot: string): Promise<void> {
   const targetFolder = getTargetFolder();
   const targetDir = path.join(workspaceRoot, targetFolder);
   const symlinks = await listSymlinks(targetDir);
+  const instructionsFile = shouldUpdateInstructions()
+    ? getInstructionsFile(workspaceRoot)
+    : undefined;
 
   await updateGitignoreFile(
     path.join(workspaceRoot, ".gitignore"),
     targetFolder,
     targetDir,
+    instructionsFile,
   );
 
   if (!shouldUpdateInstructions()) {
     return;
   }
 
-  const instructionsFile = getInstructionsFile(workspaceRoot);
-  await updateInstructionsFile(instructionsFile, symlinks, targetFolder);
+  await updateInstructionsFile(instructionsFile!, symlinks, targetFolder);
 }
 
 export function activate(context: vscode.ExtensionContext): void {
