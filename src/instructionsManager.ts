@@ -4,6 +4,8 @@ import { SymlinkEntry } from "./symlinkManager";
 
 const BLOCK_START = "<!-- symlink-folders:start -->";
 const BLOCK_END = "<!-- symlink-folders:end -->";
+const GITIGNORE_BLOCK_START = "# agent-folders:start";
+const GITIGNORE_BLOCK_END = "# agent-folders:end";
 
 function generateBlock(symlinks: SymlinkEntry[], targetFolder: string): string {
   if (symlinks.length === 0) {
@@ -15,7 +17,7 @@ function generateBlock(symlinks: SymlinkEntry[], targetFolder: string): string {
     "## Example Folders",
     "",
     `The following folders are symlinked into \`${targetFolder}/\` to provide reference implementations.`,
-    `When writing code, refer to these examples for patterns and conventions used in this project.`,
+    "Refer to these examples for patterns and conventions used in this project when they are relevant to the task.",
     "",
   ];
 
@@ -65,4 +67,69 @@ export async function updateInstructionsFile(
   }
 
   await fs.promises.writeFile(instructionsFilePath, updated, "utf8");
+}
+
+export async function updateGitignoreFile(
+  gitignoreFilePath: string,
+  targetFolder: string,
+  targetDirPath: string,
+): Promise<void> {
+  let existing = "";
+  try {
+    existing = await fs.promises.readFile(gitignoreFilePath, "utf8");
+  } catch {
+    // File doesn't exist yet — start empty
+  }
+
+  const normalizedTarget = targetFolder.replace(/^\/+|\/+$/g, "");
+  let targetDirExists = false;
+  try {
+    const stat = await fs.promises.stat(targetDirPath);
+    targetDirExists = stat.isDirectory();
+  } catch {
+    targetDirExists = false;
+  }
+
+  const hasManagedFolder = normalizedTarget.length > 0 && targetDirExists;
+  const managedBlock = hasManagedFolder
+    ? `${GITIGNORE_BLOCK_START}\n/${normalizedTarget}/\n${GITIGNORE_BLOCK_END}\n`
+    : "";
+
+  const startIdx = existing.indexOf(GITIGNORE_BLOCK_START);
+  const endIdx = existing.indexOf(GITIGNORE_BLOCK_END);
+
+  let updated = existing;
+  if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+    const before = existing.slice(0, startIdx).trimEnd();
+    const after = existing
+      .slice(endIdx + GITIGNORE_BLOCK_END.length)
+      .trimStart();
+
+    updated = [before, managedBlock.trimEnd(), after]
+      .filter((part) => part.length > 0)
+      .join("\n\n");
+
+    if (updated.length > 0) {
+      updated = `${updated.trimEnd()}\n`;
+    }
+  } else if (managedBlock.length > 0) {
+    updated = existing.trimEnd();
+    updated =
+      updated.length > 0 ? `${updated}\n\n${managedBlock}` : managedBlock;
+  }
+
+  if (updated === existing) {
+    return;
+  }
+
+  if (updated.length === 0) {
+    try {
+      await fs.promises.unlink(gitignoreFilePath);
+    } catch {
+      // Nothing to remove
+    }
+    return;
+  }
+
+  await fs.promises.writeFile(gitignoreFilePath, updated, "utf8");
 }

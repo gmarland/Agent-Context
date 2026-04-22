@@ -1,8 +1,8 @@
 {
   "name": "symlink-extension",
-  "displayName": "Symlink Folders",
-  "description": "Symlink external folders into your workspace for use as AI agent examples",
-  "version": "0.0.2",
+  "displayName": "Agent Folders",
+  "description": "Attach external reference folders to your workspace for agent and developer context",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -10,118 +10,118 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:symlinkFolders"
+    "onView:agentFolders"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "symlinkFoldersSidebar",
-          "title": "Symlink Folders",
+          "id": "agentFoldersSidebar",
+          "title": "Agent Folders",
           "icon": "media/symlink-folders.svg"
         }
       ]
     },
     "commands": [
       {
-        "command": "symlinkFolders.addSymlink",
-        "title": "Add Symlink Folder",
+        "command": "agentFolders.addFolder",
+        "title": "Add Agent Folder",
         "icon": "$(add)"
       },
       {
-        "command": "symlinkFolders.removeSymlink",
-        "title": "Remove Symlink",
+        "command": "agentFolders.removeFolder",
+        "title": "Remove Agent Folder",
         "icon": "$(trash)"
       },
       {
-        "command": "symlinkFolders.refresh",
+        "command": "agentFolders.refresh",
         "title": "Refresh",
         "icon": "$(refresh)"
       },
       {
-        "command": "symlinkFolders.openTargetFolder",
-        "title": "Open Target Folder",
+        "command": "agentFolders.openFolderDirectory",
+        "title": "Open Agent Folders Directory",
         "icon": "$(folder-opened)"
       },
       {
-        "command": "symlinkFolders.revealInFinder",
-        "title": "Reveal Original in Finder",
+        "command": "agentFolders.revealOriginalFolder",
+        "title": "Reveal Original Folder",
         "icon": "$(file-symlink-directory)"
       },
       {
-        "command": "symlinkFolders.editDescription",
+        "command": "agentFolders.editDescription",
         "title": "Edit Description",
         "icon": "$(edit)"
       }
     ],
     "views": {
-      "symlinkFoldersSidebar": [
+      "agentFoldersSidebar": [
         {
-          "id": "symlinkFolders",
+          "id": "agentFolders",
           "name": "Attached Folders"
         }
       ]
     },
     "viewsWelcome": [
       {
-        "view": "symlinkFolders",
-        "contents": "No folders are attached yet.\n[Add Folder](command:symlinkFolders.addSymlink)"
+        "view": "agentFolders",
+        "contents": "No folders are attached yet.\n[Add Folder](command:agentFolders.addFolder)"
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "symlinkFolders.addSymlink",
-          "when": "view == symlinkFolders",
+          "command": "agentFolders.addFolder",
+          "when": "view == agentFolders",
           "group": "navigation"
         },
         {
-          "command": "symlinkFolders.refresh",
-          "when": "view == symlinkFolders",
+          "command": "agentFolders.refresh",
+          "when": "view == agentFolders",
           "group": "navigation"
         },
         {
-          "command": "symlinkFolders.openTargetFolder",
-          "when": "view == symlinkFolders",
+          "command": "agentFolders.openFolderDirectory",
+          "when": "view == agentFolders",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "symlinkFolders.removeSymlink",
-          "when": "view == symlinkFolders && viewItem == symlinkItem",
+          "command": "agentFolders.removeFolder",
+          "when": "view == agentFolders && viewItem == agentFolderItem",
           "group": "inline"
         },
         {
-          "command": "symlinkFolders.editDescription",
-          "when": "view == symlinkFolders && viewItem == symlinkItem",
+          "command": "agentFolders.editDescription",
+          "when": "view == agentFolders && viewItem == agentFolderItem",
           "group": "inline"
         },
         {
-          "command": "symlinkFolders.revealInFinder",
-          "when": "view == symlinkFolders && viewItem == symlinkItem",
+          "command": "agentFolders.revealOriginalFolder",
+          "when": "view == agentFolders && viewItem == agentFolderItem",
           "group": "inline"
         }
       ]
     },
     "configuration": {
-      "title": "Symlink Folders",
+      "title": "Agent Folders",
       "properties": {
-        "symlinkFolders.targetFolder": {
+        "agentFolders.targetFolder": {
           "type": "string",
           "default": ".examples",
-          "description": "The folder within the workspace where symlinks will be created"
+          "description": "The folder within the workspace where agent folder symlinks will be created"
         },
-        "symlinkFolders.updateAgentInstructions": {
+        "agentFolders.updateAgentInstructions": {
           "type": "boolean",
           "default": true,
-          "description": "Automatically update the agent instructions file when symlinks are added or removed"
+          "description": "Automatically update the shared instructions file when folders are added or removed"
         },
-        "symlinkFolders.instructionsFile": {
+        "agentFolders.instructionsFile": {
           "type": "string",
-          "default": ".github/copilot-instructions.md",
-          "description": "Relative path within the workspace to the agent instructions file to update"
+          "default": "AGENTS.md",
+          "description": "Relative path within the workspace to the shared instructions file to update"
         }
       }
     }
@@ -130,7 +130,8 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "lint": "eslint src --ext ts"
+    "lint": "eslint src --ext ts",
+    "test": "npm run compile && node --test test/**/*.test.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

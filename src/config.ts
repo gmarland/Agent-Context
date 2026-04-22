@@ -1,10 +1,25 @@
 import * as vscode from "vscode";
 import * as path from "path";
 
-export function getTargetFolder(): string {
+function getConfiguredValue<T>(
+  key: string,
+  defaultValue: T,
+): T {
+  const agentFoldersValue = vscode.workspace
+    .getConfiguration("agentFolders")
+    .get<T>(key);
+
+  if (agentFoldersValue !== undefined) {
+    return agentFoldersValue;
+  }
+
   return vscode.workspace
     .getConfiguration("symlinkFolders")
-    .get<string>("targetFolder", ".examples");
+    .get<T>(key, defaultValue);
+}
+
+export function getTargetFolder(): string {
+  return getConfiguredValue("targetFolder", ".examples");
 }
 
 export function getWorkspaceRoot(): string | undefined {
@@ -12,14 +27,10 @@ export function getWorkspaceRoot(): string | undefined {
 }
 
 export function shouldUpdateInstructions(): boolean {
-  return vscode.workspace
-    .getConfiguration("symlinkFolders")
-    .get<boolean>("updateAgentInstructions", true);
+  return getConfiguredValue("updateAgentInstructions", true);
 }
 
 export function getInstructionsFile(workspaceRoot: string): string {
-  const rel = vscode.workspace
-    .getConfiguration("symlinkFolders")
-    .get<string>("instructionsFile", ".github/copilot-instructions.md");
+  const rel = getConfiguredValue("instructionsFile", "AGENTS.md");
   return path.join(workspaceRoot, rel);
 }
